@@ -38,6 +38,39 @@
       </div>
 
 
+      <!-- =========================================
+           PILIH TIPE FOTO
+           ========================================= -->
+
+      <div class="form-group photo-type-group">
+
+        <label>
+          Tipe Foto
+        </label>
+
+        <div class="photo-type-selection">
+
+          <button
+            type="button"
+            id="beforeButton"
+            class="photo-type-button"
+          >
+            BEFORE
+          </button>
+
+          <button
+            type="button"
+            id="afterButton"
+            class="photo-type-button"
+          >
+            AFTER
+          </button>
+
+        </div>
+
+      </div>
+
+
       <!-- SEARCH PROD CODE -->
       <div class="form-group">
 
@@ -50,8 +83,9 @@
           <input
             type="text"
             id="prodCodeInput"
-            placeholder="Ketik ProdCode..."
+            placeholder="Pilih Before / After terlebih dahulu..."
             autocomplete="off"
+            disabled
           >
 
           <div
@@ -110,7 +144,8 @@
 
         <label
           for="photoInput"
-          class="photo-button"
+          class="photo-button disabled"
+          id="photoButton"
         >
 
           <span class="camera-icon">
@@ -118,7 +153,7 @@
           </span>
 
           <span>
-            Ambil / Pilih Foto
+            Pilih Before / After terlebih dahulu
           </span>
 
         </label>
@@ -129,6 +164,7 @@
           accept="image/*"
           capture="environment"
           hidden
+          disabled
         >
 
       </div>

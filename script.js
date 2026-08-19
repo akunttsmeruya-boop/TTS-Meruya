@@ -120,10 +120,12 @@ async function searchProducts(query) {
       await response.json();
 
     if (!result.success) {
+
       throw new Error(
         result.message ||
         'Gagal mencari data.'
       );
+
     }
 
     renderSearchResults(
@@ -144,6 +146,7 @@ async function searchProducts(query) {
     searchLoading.classList.add(
       'hidden'
     );
+
   }
 }
 
@@ -273,6 +276,7 @@ photoInput.addEventListener(
     selectedFile = file;
 
 
+    // Preview menggunakan foto asli
     const reader =
       new FileReader();
 
@@ -332,6 +336,7 @@ function updateUploadButton() {
   uploadButton.disabled =
     !selectedProd ||
     !selectedFile;
+
 }
 
 
@@ -367,22 +372,72 @@ uploadButton.addEventListener(
     uploadButton.disabled = true;
 
     uploadButton.textContent =
-      'MENGUPLOAD...';
+      'MENGOMPRES & UPLOAD...';
 
 
     showStatus(
-      'Sedang mengupload foto...',
+      'Menyiapkan foto...',
       'loading'
     );
 
 
     try {
 
-      const base64 =
-        await fileToBase64(
+      /**
+       * =========================================
+       * KOMPRES FOTO
+       * =========================================
+       */
+
+      const compressedFile =
+        await compressImage(
           selectedFile
         );
 
+
+      console.log(
+        'Ukuran asli:',
+        formatFileSize(
+          selectedFile.size
+        )
+      );
+
+
+      console.log(
+        'Ukuran setelah kompres:',
+        formatFileSize(
+          compressedFile.size
+        )
+      );
+
+
+      showStatus(
+        'Mengupload foto ' +
+        formatFileSize(
+          compressedFile.size
+        ) +
+        '...',
+        'loading'
+      );
+
+
+      /**
+       * =========================================
+       * CONVERT BASE64
+       * =========================================
+       */
+
+      const base64 =
+        await fileToBase64(
+          compressedFile
+        );
+
+
+      /**
+       * =========================================
+       * PAYLOAD
+       * =========================================
+       */
 
       const payload = {
 
@@ -390,16 +445,23 @@ uploadButton.addEventListener(
           selectedProd.prodCode,
 
         fileName:
-          selectedFile.name,
+          selectedProd.prodCode +
+          '.jpg',
 
         mimeType:
-          selectedFile.type,
+          'image/jpeg',
 
         fileData:
           base64
 
       };
 
+
+      /**
+       * =========================================
+       * SEND KE APPS SCRIPT
+       * =========================================
+       */
 
       const response =
         await fetch(
@@ -414,6 +476,7 @@ uploadButton.addEventListener(
 
             body:
               JSON.stringify(payload)
+
           }
         );
 
@@ -432,6 +495,12 @@ uploadButton.addEventListener(
       }
 
 
+      /**
+       * =========================================
+       * SUCCESS
+       * =========================================
+       */
+
       showStatus(
         '✓ Foto berhasil disimpan sebagai ' +
         result.fileName,
@@ -439,7 +508,10 @@ uploadButton.addEventListener(
       );
 
 
-      // Reset foto
+      /**
+       * RESET FOTO
+       */
+
       selectedFile = null;
 
       photoInput.value = '';
@@ -475,29 +547,192 @@ uploadButton.addEventListener(
 
 
 /**
- * Convert file → Base64
+ * =========================================
+ * KOMPRESI FOTO
+ * =========================================
+ *
+ * Maksimal dimensi:
+ * 1600 x 1600 px
+ *
+ * JPEG quality:
+ * 80%
+ *
  */
-function fileToBase64(file) {
+function compressImage(file) {
 
   return new Promise(
     function (resolve, reject) {
+
+      const img =
+        new Image();
 
       const reader =
         new FileReader();
 
 
       reader.onload =
-        function () {
+        function (event) {
 
-          const result =
-            reader.result;
+          img.onload =
+            function () {
 
-          // Hapus prefix:
-          // data:image/jpeg;base64,
-          const base64 =
-            result.split(',')[1];
+              const MAX_SIZE = 1600;
 
-          resolve(base64);
+              let width =
+                img.width;
+
+              let height =
+                img.height;
+
+
+              /**
+               * Resize jika terlalu besar
+               */
+
+              if (
+                width > MAX_SIZE ||
+                height > MAX_SIZE
+              ) {
+
+                if (width > height) {
+
+                  height =
+                    Math.round(
+                      height *
+                      MAX_SIZE /
+                      width
+                    );
+
+                  width =
+                    MAX_SIZE;
+
+                } else {
+
+                  width =
+                    Math.round(
+                      width *
+                      MAX_SIZE /
+                      height
+                    );
+
+                  height =
+                    MAX_SIZE;
+
+                }
+
+              }
+
+
+              /**
+               * Canvas
+               */
+
+              const canvas =
+                document.createElement(
+                  'canvas'
+                );
+
+
+              canvas.width =
+                width;
+
+              canvas.height =
+                height;
+
+
+              const ctx =
+                canvas.getContext(
+                  '2d'
+                );
+
+
+              /**
+               * Supaya hasil foto
+               * tetap bagus
+               */
+
+              ctx.imageSmoothingEnabled =
+                true;
+
+              ctx.imageSmoothingQuality =
+                'high';
+
+
+              ctx.drawImage(
+                img,
+                0,
+                0,
+                width,
+                height
+              );
+
+
+              /**
+               * Convert ke JPEG
+               */
+
+              canvas.toBlob(
+                function (blob) {
+
+                  if (!blob) {
+
+                    reject(
+                      new Error(
+                        'Gagal melakukan kompresi foto.'
+                      )
+                    );
+
+                    return;
+                  }
+
+
+                  /**
+                   * Buat file baru
+                   */
+
+                  const compressedFile =
+                    new File(
+                      [blob],
+                      'photo.jpg',
+                      {
+                        type:
+                          'image/jpeg',
+
+                        lastModified:
+                          Date.now()
+                      }
+                    );
+
+
+                  resolve(
+                    compressedFile
+                  );
+
+                },
+
+                'image/jpeg',
+
+                0.80
+
+              );
+
+            };
+
+
+          img.onerror =
+            function () {
+
+              reject(
+                new Error(
+                  'Foto tidak dapat dibaca.'
+                )
+              );
+
+            };
+
+
+          img.src =
+            event.target.result;
 
         };
 
@@ -522,7 +757,107 @@ function fileToBase64(file) {
 
 
 /**
+ * =========================================
+ * CONVERT FILE → BASE64
+ * =========================================
+ */
+function fileToBase64(file) {
+
+  return new Promise(
+    function (resolve, reject) {
+
+      const reader =
+        new FileReader();
+
+
+      reader.onload =
+        function () {
+
+          const result =
+            reader.result;
+
+
+          /**
+           * Hapus:
+           *
+           * data:image/jpeg;base64,
+           */
+
+          const base64 =
+            result.split(',')[1];
+
+
+          resolve(
+            base64
+          );
+
+        };
+
+
+      reader.onerror =
+        function () {
+
+          reject(
+            new Error(
+              'Gagal membaca foto.'
+            )
+          );
+
+        };
+
+
+      reader.readAsDataURL(file);
+
+    }
+  );
+}
+
+
+/**
+ * =========================================
+ * FORMAT UKURAN FILE
+ * =========================================
+ */
+function formatFileSize(bytes) {
+
+  if (bytes < 1024) {
+
+    return (
+      bytes +
+      ' B'
+    );
+
+  }
+
+
+  if (
+    bytes <
+    1024 * 1024
+  ) {
+
+    return (
+      (bytes / 1024)
+        .toFixed(0) +
+      ' KB'
+    );
+
+  }
+
+
+  return (
+    (bytes /
+      (1024 * 1024))
+      .toFixed(2) +
+    ' MB'
+  );
+
+}
+
+
+/**
+ * =========================================
  * STATUS
+ * =========================================
  */
 function showStatus(
   message,
@@ -533,7 +868,8 @@ function showStatus(
     message;
 
   statusBox.className =
-    'status ' + type;
+    'status ' +
+    type;
 
 }
 
@@ -549,29 +885,38 @@ function clearStatus() {
 
 
 /**
- * Security:
- * Jangan masukkan HTML mentah dari spreadsheet
- * ke dalam innerHTML.
+ * =========================================
+ * SECURITY
+ * =========================================
+ *
+ * Jangan masukkan HTML mentah
+ * dari spreadsheet ke innerHTML.
+ *
  */
 function escapeHtml(value) {
 
   return String(value || '')
+
     .replace(
       /&/g,
       '&amp;'
     )
+
     .replace(
       /</g,
       '&lt;'
     )
+
     .replace(
       />/g,
       '&gt;'
     )
+
     .replace(
       /"/g,
       '&quot;'
     )
+
     .replace(
       /'/g,
       '&#039;'
@@ -581,7 +926,9 @@ function escapeHtml(value) {
 
 
 /**
- * Klik di luar dropdown
+ * =========================================
+ * KLIK DI LUAR DROPDOWN
+ * =========================================
  */
 document.addEventListener(
   'click',

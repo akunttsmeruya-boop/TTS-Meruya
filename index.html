@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Photo Upload</title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+</head>
+
+<body>
+
+  <main class="container">
+
+    <div class="card">
+
+      <div class="header">
+        <div class="logo">📷</div>
+
+        <div>
+          <h1>Photo Upload</h1>
+          <p>Upload foto berdasarkan ProdCode</p>
+        </div>
+      </div>
+
+
+      <!-- SEARCH -->
+      <div class="form-group">
+
+        <label for="prodCodeInput">
+          ProdCode
+        </label>
+
+        <div class="search-wrapper">
+
+          <input
+            type="text"
+            id="prodCodeInput"
+            placeholder="Ketik ProdCode..."
+            autocomplete="off"
+          >
+
+          <div
+            id="searchLoading"
+            class="search-loading hidden"
+          >
+            Mencari...
+          </div>
+
+        </div>
+
+
+        <!-- DROPDOWN -->
+        <div
+          id="searchResults"
+          class="search-results hidden"
+        ></div>
+
+      </div>
+
+
+      <!-- SELECTED PRODUCT -->
+      <div
+        id="selectedProduct"
+        class="selected-product hidden"
+      >
+
+        <div class="product-label">
+          PRODUK TERPILIH
+        </div>
+
+        <div
+          id="selectedProdCode"
+          class="selected-prodcode"
+        ></div>
+
+        <div
+          id="selectedProdName"
+          class="selected-name"
+        ></div>
+
+        <div
+          id="selectedBarcode"
+          class="selected-barcode"
+        ></div>
+
+      </div>
+
+
+      <!-- PHOTO -->
+      <div class="form-group">
+
+        <label>
+          Foto
+        </label>
+
+        <label
+          for="photoInput"
+          class="photo-button"
+        >
+          <span class="camera-icon">📷</span>
+
+          <span>
+            Ambil / Pilih Foto
+          </span>
+        </label>
+
+        <input
+          type="file"
+          id="photoInput"
+          accept="image/*"
+          capture="environment"
+          hidden
+        >
+
+      </div>
+
+
+      <!-- PREVIEW -->
+      <div
+        id="previewContainer"
+        class="preview-container hidden"
+      >
+
+        <img
+          id="photoPreview"
+          alt="Preview foto"
+        >
+
+        <button
+          type="button"
+          id="removePhoto"
+          class="remove-photo"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <!-- SUBMIT -->
+      <button
+        type="button"
+        id="uploadButton"
+        class="upload-button"
+        disabled
+      >
+        KIRIM FOTO
+      </button>
+
+
+      <!-- STATUS -->
+      <div
+        id="status"
+        class="status hidden"
+      ></div>
+
+    </div>
+
+  </main>
+
+
+  <script src="script.js"></script>
+
+</body>
+</html>

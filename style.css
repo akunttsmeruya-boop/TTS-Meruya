@@ -54,37 +54,23 @@ body {
    ===================================================== */
 
 .header {
-  display: flex;
-
-  flex-direction: column;
-
-  align-items: center;
-
+  width: 100%;
   text-align: center;
-
-  gap: 10px;
-
-  margin-bottom: 28px;
 }
+
 .header-text {
   width: 100%;
+  text-align: center;
 }
 
-
-.header h1 {
+.header-text h1 {
   margin: 0;
-
-  font-size: 22px;
-
-  font-weight: 700;
+  text-align: center;
 }
 
-.header p {
+.header-text p {
   margin: 5px 0 0;
-
-  color: #6b7280;
-
-  font-size: 13px;
+  text-align: center;
 }
 
 
